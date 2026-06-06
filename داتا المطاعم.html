@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام تجميع داتا مطاعم الإسكندرية والباقات</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; }
+        .container { max-width: 600px; margin: 20px auto; background: #ffffff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        h2 { text-align: center; color: #1a73e8; margin-bottom: 5px; }
+        p.subtitle { text-align: center; color: #5f6368; font-size: 14px; margin-bottom: 25px; }
+        .form-group { margin-bottom: 18px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #3c4043; }
+        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 10px 12px; box-sizing: border-box; border: 1px solid #dadce0; border-radius: 6px; font-size: 15px; font-family: inherit; }
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus { border-color: #1a73e8; outline: none; box-shadow: 0 0 5px rgba(26,115,232,0.2); }
+        textarea { resize: vertical; height: 70px; }
+        
+        /* صندوق تفاصيل الباقة */
+        .package-details-box { background-color: #f8f9fa; border-right: 4px solid #1a73e8; padding: 15px; border-radius: 4px; margin-top: 10px; display: none; }
+        .package-details-box h4 { margin: 0 0 8px 0; color: #1a73e8; }
+        .package-details-box ul { margin: 0; padding-right: 20px; color: #4a4a4a; font-size: 14px; }
+        .package-price { font-weight: bold; color: #28a745; margin-top: 8px; display: block; }
+
+        button { width: 100%; padding: 12px; background-color: #1a73e8; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; transition: background 0.2s; margin-top: 10px; }
+        button:hover { background-color: #1557b0; }
+        button:disabled { background-color: #ccc; cursor: not-allowed; }
+        #message { margin-top: 15px; text-align: center; font-weight: bold; font-size: 15px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>إضافة مطعم وباقة تسويقية 🍔✨</h2>
+    <p class="subtitle">سجل بيانات المطاعم وحدد الباقة المقترحة مع تفاصيلها لفريق المبيعات</p>
+    
+    <form id="restaurantForm">
+        <div class="form-group">
+            <label for="restaurant_name">اسم المطعم:</label>
+            <input type="text" id="restaurant_name" name="restaurant_name" placeholder="مثال: برجر زون" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="location">المنطقة / العنوان (في الإسكندرية):</label>
+            <input type="text" id="location" name="location" placeholder="مثال: سموحة، جليم، كامب شيزار..." required>
+        </div>
+        
+        <div class="form-group">
+            <label for="phone">رقم الفون / الواتساب:</label>
+            <input type="tel" id="phone" name="phone" placeholder="01xxxxxxxxx" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="social_link">رابط الصفحة الحالي (فيسبوك / إنستجرام):</label>
+            <input type="url" id="social_link" name="social_link" placeholder="https://facebook.com/..." required>
+        </div>
+
+        <!-- خانة القائمة المنسدلة للباقات -->
+        <div class="form-group">
+            <label for="suggested_package">الباقة التسويقية المقترحة:</label>
+            <select id="suggested_package" name="suggested_package" required>
+                <option value="" disabled selected>-- اختر الباقة المناسبة لوضع المطعم --</option>
+                <option value="باقة البداية (Social Media Setup)">باقة البداية (Social Media Setup)</option>
+                <option value="باقة النمو الذكي (Growth Package)">باقة النمو الذكي (Growth Package)</option>
+                <option value="الباقة المتكاملة (Premium Food Marketing)">الباقة المتكاملة (Premium Food Marketing)</option>
+            </select>
+            
+            <!-- الصندوق الذكي لعرض تفاصيل كل باقة -->
+            <div id="packageDetails" class="package-details-box">
+                <h4 id="detailTitle">تفاصيل الباقة</h4>
+                <ul id="detailFeatures"></ul>
+                <span id="detailPrice" class="package-price"></span>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label for="notes">ملاحظات إضافية للسيلز:</label>
+            <textarea id="notes" name="notes" placeholder="مثال: صفحتهم قديمة محتاجة ريلز وتصوير منيو، كلمنا صاحب المكان اسمه أ/ محمد..."></textarea>
+        </div>
+        
+        <button type="submit" id="submitBtn">حفظ البيانات وإرسالها للشيت</button>
+    </form>
+    <div id="message"></div>
+</div>
+
+<script>
+    // بيانات تفاصيل الباقات (يمكنك تعديل الميزات والأسعار من هنا مباشرة)
+    const packagesInfo = {
+        "باقة البداية (Social Media Setup)": {
+            title: "باقة البداية وتأسيس الصفحات",
+            features: [
+                "إعداد وضبط الصفحات بشكل احترافي.",
+                "كتابة الـ Bio وتجهيز ردود تلقائية مخصصة للمطعم.",
+                "تصميم 8 بوستات شهرياً (سوشيال ميديا ديزاين).",
+                "إدارة الحملات الإعلانية الأساسية (بدون الميزانية)."
+            ],
+            price: "السعر المقترح: 3,000 ج.م / شهرياً"
+        },
+        "باقة النمو الذكي (Growth Package)": {
+            title: "باقة النمو الذكي وزيادة المبيعات",
+            features: [
+                "كل ما في باقة البداية.",
+                "جلسة تصوير احترافية للمنتجات والأطباق داخل المطعم.",
+                "صناعة وتعديل 4 فيديوهات ريلز (Reels) شهرياً بجودة عالية.",
+                "إدارة كاملة للموديريتور والردود على الرسائل والكومنتات.",
+                "إعلانات ممولة مستهدفة لمناطق الإسكندرية القريبة من المطعم."
+            ],
+            price: "السعر المقترح: 6,000 ج.م / شهرياً"
+        },
+        "الباقة المتكاملة (Premium Food Marketing)": {
+            title: "الباقة المتكاملة للمطاعم الكبرى والبراندات",
+            features: [
+                "إدارة شاملة لجميع المنصات (فيسبوك، إنستجرام، تيك توك).",
+                "2 جلسة تصوير احترافية شهرياً (فيديو وفوتوسيشن سينمائي).",
+                "صناعة 8 فيديوهات ريلز وتيك توك شهرياً مواكبة للتريندات.",
+                "حملات تسويقية متكاملة لزيادة الطلبات عبر الدليفري أو زيارة الفروع.",
+                "الاتفاق مع إنفلونسرز (Food Bloggers) في الإسكندرية لعمل ريفيو للمطعم."
+            ],
+            price: "السعر المقترح: 12,000 ج.م / شهرياً"
+        }
+    };
+
+    const packageSelect = document.getElementById('suggested_package');
+    const detailsBox = document.getElementById('packageDetails');
+    const detailTitle = document.getElementById('detailTitle');
+    const detailFeatures = document.getElementById('detailFeatures');
+    const detailPrice = document.getElementById('detailPrice');
+
+    // تفعيل التغيير التلقائي للتفاصيل بناءً على الاختيار
+    packageSelect.addEventListener('change', (e) => {
+        const selected = e.target.value;
+        if (packagesInfo[selected]) {
+            detailTitle.textContent = packagesInfo[selected].title;
+            detailPrice.textContent = packagesInfo[selected].price;
+            
+            // تفريغ القائمة القديمة وإضافة الميزات الجديدة
+            detailFeatures.innerHTML = '';
+            packagesInfo[selected].features.forEach(feature => {
+                const li = document.createElement('li');
+                li.textContent = feature;
+                detailFeatures.appendChild(li);
+            });
+            
+            detailsBox.style.display = 'block'; // إظهار الصندوق
+        } else {
+            detailsBox.style.display = 'none'; // إخفاء الصندوق إذا لم يتم اختيار شيء
+        }
+    });
+
+    // كود إرسال البيانات إلى جوجل شيت
+    const scriptURL = 'هنا_تضع_رابط_جوجل_سكريبت_الجديد';
+    const form = document.getElementById('restaurantForm');
+    const msg = document.getElementById('message');
+    const btn = document.getElementById('submitBtn');
+
+    form.addEventListener('submit', e => {
+        e.preventDefault();
+        btn.disabled = true;
+        msg.textContent = 'جاري حفظ البيانات في جوجل شيت...';
+        msg.style.color = '#e67e22';
+
+        fetch(scriptURL, { method: 'POST', body: new FormData(form)})
+            .then(response => {
+                msg.textContent = '✅ تم حفظ المطعم والباقة المقترحة بنجاح!';
+                msg.style.color = '#27ae60';
+                form.reset(); 
+                detailsBox.style.display = 'none'; // إخفاء صندوق التفاصيل بعد الإرسال
+                btn.disabled = false;
+            })
+            .catch(error => {
+                console.error('Error!', error.message);
+                msg.textContent = '❌ حدث خطأ أثناء الحفظ، حاول مجدداً.';
+                msg.style.color = '#c0392b';
+                btn.disabled = false;
+            });
+    });
+</script>
+
+</body>
+</html>
